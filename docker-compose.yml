@@ -1,0 +1,26 @@
+﻿version: '3.4'
+
+services:
+  portfoliojay:
+    image: portfoliojay
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9080:80"
+    depends_on: 
+      - migrations
+      - db
+  db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: "Password@12345"
+      ACCEPT_EULA: "Y"
+    ports:
+    - "14331:1433"
+    depends_on: 
+      - migrations
+  migrations:
+    build: 
+      context: .
+      dockerfile: Migrations.Dockerfile
