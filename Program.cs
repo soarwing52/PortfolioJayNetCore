@@ -8,19 +8,39 @@ using System.Linq;
 using System.Threading.Tasks;
 using PortfolioJay.Data;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace PortfolioJay
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public async static Task Main(string[] args)
         {
             //CreateHostBuilder(args).Build().Run();
             var host = CreateHostBuilder(args).Build();
+            using var scope = host.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            try
+            {
+                var dbContext = services.GetRequiredService<SchoolContext>();
+                if (dbContext.Database.IsSqlServer())
+                {
+                    dbContext.Database.Migrate();
+                }
+            }
+            catch (Exception ex)
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+                logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+
+                //throw;
+            }
 
             CreateDbIfNotExists(host);
 
-            host.Run();
+            // host.Run();
+            await host.RunAsync();
         }
         private static void CreateDbIfNotExists(IHost host)
         {
